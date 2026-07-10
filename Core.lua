@@ -1,50 +1,18 @@
--- HazzHub Core | Professional Logic
-local UI = getgenv().DRR -- Твій інтерфейс Dr.Ray
+-- HazzHub Core.lua
+-- Це файл, який з'єднує інтерфейс з функціями
 
--- Таблиця для керування станами (зберігає значення всіх перемикачів)
-_G.Settings = {
-    Speed = 16,
-    Fly = false,
-    ESP = false
-}
+-- 1. Підключаємо інтерфейс Dr.Ray, який ми завантажили в Library.lua
+local UI = getgenv().DRR 
 
--- Блок додавання функцій (основа)
-local function CreateCategory(Title)
-    -- Тут код підключення до твого UI
-    print("Category loaded: " .. Title)
-end
+-- 2. Вказуємо шлях до твоїх модулів на GitHub
+-- Заміни "ТВІЙ_НІК" на свій реальний нік на GitHub
+local ModulePath = "https://raw.githubusercontent.com/ТВІЙ_НІК/HazzHub/main/Features/"
 
--- 1. COMBAT & ATTACK
-CreateCategory("Combat")
--- Сюди додаєш: Attack, Wall Combo, Fling Type, Dashes
-local function AttackLogic()
-    -- Logic for Attack / Wall Combo
-end
+-- 3. Завантажуємо модулі з папки Features
+-- Тепер, коли ти будеш додавати новий код у файл "Combat.lua" на GitHub, 
+-- він автоматично підтягнеться сюди при запуску хабу.
+loadstring(game:HttpGet(ModulePath .. "Combat.lua"))()
+loadstring(game:HttpGet(ModulePath .. "Visuals.lua"))()
+loadstring(game:HttpGet(ModulePath .. "Movement.lua"))()
 
--- 2. MOVEMENT
-CreateCategory("Movement")
--- Сюди додаєш: Speed, Fly, Cframe, Teleport
-local RunService = game:GetService("RunService")
-RunService.RenderStepped:Connect(function()
-    if _G.Settings.Fly then
-        -- Fly logic
-    end
-end)
-
--- 3. VISUALS
-CreateCategory("Visuals")
--- Сюди додаєш: ESP, Tracers
-local function UpdateESP()
-    -- ESP/Tracers rendering logic
-end
-
--- 4. CHARACTER & ANIMATIONS
-CreateCategory("Character")
--- Сюди додаєш: Characters, Animations
-local function ChangeCharacter(id)
-    -- Logic
-end
-
--- 5. AUTOMATIONS & MISC
-CreateCategory("Automations")
--- Сюди додаєш: Automations, Commands, Anti Ban, Keybinds
+print("HazzHub Core loaded successfully!")
