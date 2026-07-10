@@ -31,4 +31,4 @@ getgenv().Window = Window
 getgenv().Tabs = Tabs
 
 -- Завантажуємо Logic (заміни посилання на своє)
-loadstring(game:HttpGet("ТВОЄ_ПОСИЛАННЯ_НА_LOGIC_LUA"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/pelmenitop2023-bot/HazzHub/refs/heads/main/Logic.lua"))()
