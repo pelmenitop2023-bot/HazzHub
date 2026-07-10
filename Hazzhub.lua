@@ -1,75 +1,65 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+local _ENV = (getgenv or getrenv or getfenv)()
+local CURRENT_VERSION = _ENV.Version or "V3"
 
-local Window = Fluent:CreateWindow({
-    Title = "HazzHub | Premium Design",
-    SubTitle = "v1.2 - The Strongest Battlegrounds",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Darker", -- Найстильніша темна тема
-})
-
-local Tabs = {
-    Main = Window:AddTab({ Title = "Основне", Icon = "home" }),
-    Combat = Window:AddTab({ Title = "Битва", Icon = "swords" })
+local Versions = {
+	V1 = "https://github.com/TlDinhKhoi/Xeter/raw/refs/heads/main/Version/V1.lua",
+	V2 = "https://github.com/TlDinhKhoi/Xeter/raw/refs/heads/main/Version/V2.lua",
+	V3 = "https://github.com/TlDinhKhoi/Xeter/raw/refs/heads/main/Version/V3.lua",
+	V4 = "https://github.com/TlDinhKhoi/Xeter/raw/refs/heads/main/Version/V4.lua",
 }
 
--- Кнопка-перемикач для мобільних пристроїв
-local ToggleButton = Instance.new("TextButton", game.CoreGui)
-ToggleButton.Size = UDim2.new(0, 100, 0, 40)
-ToggleButton.Position = UDim2.new(0, 10, 0.5, 0)
-ToggleButton.Text = "MENU"
-ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.MouseButton1Click:Connect(function() Window:Toggle() end)
+do
+	local last_exec = _ENV.xeter_execute_debounce
+	if last_exec and (tick() - last_exec) <= 5 then
+		return nil
+	end
+	_ENV.xeter_execute_debounce = tick()
+end
 
--- Дизайнерська секція
-Tabs.Main:AddParagraph({Title = "Привіт, Nz!", Content = "Цей дизайн оптимізовано для кращого користувацького досвіду."})
+do
+	local executor = syn or fluxus
+	local queueteleport = queue_on_teleport or (executor and executor.queue_on_teleport)
 
-Tabs.Main:AddButton({
-    Title = "Телепорт до найближчого",
-    Description = "Працює на гравців та манекени",
-    Callback = function()
-        local closest, dist = nil, math.huge
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("Model") and (obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Torso")) and obj.Name ~= player.Name then
-                local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Torso")
-                local d = (player.Character.HumanoidRootPart.Position - root.Position).Magnitude
-                if d < dist then dist = d; closest = obj end
-            end
-        end
-        if closest then player.Character.HumanoidRootPart.CFrame = closest:FindFirstChildWhichIsA("BasePart").CFrame end
-    end
-})
+	if not _ENV.xeter_teleport_queue and type(queueteleport) == "function" then
+		_ENV.xeter_teleport_queue = true
 
-Tabs.Combat:AddInput("TargetName", {Title = "Ім'я цілі (Fling)", Default = "", Callback = function(v) _G.Target = v end})
+		local SourceCode = ("loadstring(game:HttpGet('%s'))()"):format(Versions[CURRENT_VERSION] or Versions.V3)
 
-Tabs.Combat:AddButton({
-    Title = "Fling ціль",
-    Callback = function()
-        local target = workspace:FindFirstChild(_G.Target, true)
-        if target and target:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame
-            task.wait(0.2)
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 1000, 0)
-        end
-    end
-})
+		pcall(queueteleport, SourceCode)
+	end
+end
 
-Tabs.Combat:AddToggle("TouchFling", {Title = "Touch Fling (Авто)", Default = false}):OnChanged(function(Value)
-    _G.TouchFling = Value
-    task.spawn(function()
-        while _G.TouchFling do
-            task.wait()
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and obj.Name ~= player.Name then
-                    if (player.Character.HumanoidRootPart.Position - obj.HumanoidRootPart.Position).Magnitude < 6 then
-                        obj.HumanoidRootPart.Velocity = Vector3.new(9e9, 9e9, 9e9)
-                    end
-                end
-            end
-        end
-    end)
-end)
+local fetcher = {}
+
+local function CreateMessageError(Text)
+	if _ENV.xeter_error_message then
+		_ENV.xeter_error_message:Destroy()
+	end
+	local Message = Instance.new("Message", workspace)
+	Message.Text = Text
+	error(Text, 2)
+end
+
+function fetcher.get(url)
+	local success, response = pcall(function()
+		return game:HttpGet(url)
+	end)
+	if success then
+		return response
+	else
+		CreateMessageError(`[Fetcher Error] Failed to get URL: {url}\n>>{response}<<`)
+	end
+end
+
+function fetcher.load(url)
+	local raw = fetcher.get(url)
+	local func, err = loadstring(raw)
+	if type(func) ~= "function" then
+		CreateMessageError(`[Load Error] Syntax error at: {url}\n>>{err}<<`)
+	else
+		return func
+	end
+end
+
+local versionUrl = Versions[CURRENT_VERSION] or Versions.V3
+return fetcher.load(versionUrl)()
